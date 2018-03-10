@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Instagram Unfollowers</string>
+    <string name="etLogin">Логин</string>
+    <string name="etPassword">Пароль</string>
+    <string name="bLogin">Войти</string>
+    <string name="Unfollow">Отписаться</string>
+    <string name="loginError">Ошибка при авторизации</string>
+    <string name="bUnfollowAll">Отписаться от всех</string>
+</resources>
