@@ -53,7 +53,7 @@ public class Adapter extends RecyclerView.Adapter<Adapter.UserViewHolder> {
             }
         });
 
-        holder.imageView.setOnClickListener(new View.OnClickListener() {
+        holder.cardView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 final int position = holder.getAdapterPosition();
