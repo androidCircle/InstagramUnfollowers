@@ -40,4 +40,9 @@ public class LoginActivity extends AppCompatActivity {
                 .putExtra("password", etPassword.getText().toString()));
         finish();
     }
+
+    @Override
+    public void onBackPressed() {
+        moveTaskToBack(true);
+    }
 }

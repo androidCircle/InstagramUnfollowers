@@ -135,7 +135,7 @@ public class MainActivity extends AppCompatActivity {
     @SuppressLint("StaticFieldLeak")
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (!data.hasExtra("username")) login();
+        if (resultCode != RESULT_OK) login();
         spinner.show(getSupportFragmentManager(), "login");
         instagram = Instagram4Android.builder()
                 .username(data.getStringExtra("username"))
