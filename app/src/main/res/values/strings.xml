@@ -6,5 +6,6 @@
     <string name="Unfollow">Отписаться</string>
     <string name="loginError">Ошибка при авторизации</string>
     <string name="bUnfollowAll">Отписаться от всех</string>
+    <string name="bUnfollowAllCount">Отписаться от всех (%1$d)</string>
     <string name="logoDescription">logo</string>
 </resources>

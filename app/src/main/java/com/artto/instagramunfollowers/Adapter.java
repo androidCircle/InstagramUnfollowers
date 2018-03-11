@@ -45,11 +45,13 @@ public class Adapter extends RecyclerView.Adapter<Adapter.UserViewHolder> {
             @Override
             public void onClick(View view) {
                 final int position = holder.getAdapterPosition();
+                final int size = users.size();
                 context.sendBroadcast(new Intent("com.artto.myinstagramunfollowers.UNFOLLOW")
-                        .putExtra("username", users.get(position).getPk()));
+                        .putExtra("username", users.get(position).getPk())
+                        .putExtra("count", size - 1));
                 users.remove(position);
                 notifyItemRemoved(position);
-                notifyItemRangeChanged(position, users.size());
+                notifyItemRangeChanged(position, size);
             }
         });
 

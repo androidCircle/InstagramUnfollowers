@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.widget.Button;
 import android.widget.Toast;
 
 import java.io.IOException;
@@ -25,6 +26,7 @@ import dev.niekirk.com.instagram4android.requests.payload.InstagramUserSummary;
 public class MainActivity extends AppCompatActivity {
 
     Instagram4Android instagram;
+    Button bUnfollowAll;
     DelayedProgressDialog spinner;
     RecyclerView recycler;
     Adapter adapter;
@@ -65,10 +67,12 @@ public class MainActivity extends AppCompatActivity {
                     return null;
                 }
             }.execute(intent.getLongExtra("username", 0));
+            bUnfollowAll.setText(getString(R.string.bUnfollowAllCount, intent.getIntExtra("count", 0)));
         }
     };
 
     private void initialize() {
+        bUnfollowAll = findViewById(R.id.bUnfollowAll);
         recycler = findViewById(R.id.recycler);
         recycler.setHasFixedSize(true);
         recycler.setLayoutManager(new LinearLayoutManager(this));
@@ -127,6 +131,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
                 adapter.setUsers(unfollowers);
+                bUnfollowAll.setText(getString(R.string.bUnfollowAllCount, unfollowers.size()));
                 spinner.cancel();
             }
         }.execute();
