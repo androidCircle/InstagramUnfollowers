@@ -6,6 +6,10 @@
     <string name="Unfollow">Отписаться</string>
     <string name="loginError">Ошибка при авторизации</string>
     <string name="bUnfollowAll">Отписаться от всех</string>
+    <string name="dialogUnfollowAll">Отписаться от всех?</string>
     <string name="bUnfollowAllCount">Отписаться от всех (%1$d)</string>
+    <string name="yes">Да</string>
+    <string name="no">Нет</string>
+    <string name="attention">Внимание!</string>
     <string name="logoDescription">logo</string>
 </resources>

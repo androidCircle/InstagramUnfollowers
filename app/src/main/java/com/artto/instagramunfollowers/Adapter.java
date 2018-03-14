@@ -29,6 +29,21 @@ public class Adapter extends RecyclerView.Adapter<Adapter.UserViewHolder> {
         notifyDataSetChanged();
     }
 
+    long[] getUnfollowAllList() {
+        final int size = users.size();
+        long[] result = new long[size];
+        for (int i = 0; i < size; i++) {
+            result[i] = users.get(i).getPk();
+        }
+        return result;
+    }
+
+    void removeItem(final int position) {
+        users.remove(position);
+        notifyItemRemoved(position);
+        notifyItemRangeChanged(position, users.size());
+    }
+
     @Override
     public UserViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         context = parent.getContext();
@@ -45,13 +60,10 @@ public class Adapter extends RecyclerView.Adapter<Adapter.UserViewHolder> {
             @Override
             public void onClick(View view) {
                 final int position = holder.getAdapterPosition();
-                final int size = users.size();
-                context.sendBroadcast(new Intent("com.artto.myinstagramunfollowers.UNFOLLOW")
+                context.sendBroadcast(new Intent("com.artto.instagramunfollowers.UNFOLLOW")
                         .putExtra("username", users.get(position).getPk())
-                        .putExtra("count", size - 1));
-                users.remove(position);
-                notifyItemRemoved(position);
-                notifyItemRangeChanged(position, size);
+                        .putExtra("count", users.size()));
+                removeItem(position);
             }
         });
 
@@ -81,11 +93,6 @@ public class Adapter extends RecyclerView.Adapter<Adapter.UserViewHolder> {
     @Override
     public int getItemCount() {
         return users.size();
-    }
-
-    @Override
-    public void onAttachedToRecyclerView(RecyclerView recyclerView) {
-        super.onAttachedToRecyclerView(recyclerView);
     }
 
     static class UserViewHolder extends RecyclerView.ViewHolder {

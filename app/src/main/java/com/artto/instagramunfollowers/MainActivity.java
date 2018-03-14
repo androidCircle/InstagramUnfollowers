@@ -1,8 +1,11 @@
 package com.artto.instagramunfollowers;
 
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.AsyncTask;
@@ -10,10 +13,13 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Random;
 import java.util.Vector;
 
 import dev.niekirk.com.instagram4android.Instagram4Android;
@@ -30,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
     DelayedProgressDialog spinner;
     RecyclerView recycler;
     Adapter adapter;
+    Random random = new Random();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,7 +50,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        registerReceiver(unfollowReceiver, new IntentFilter("com.artto.myinstagramunfollowers.UNFOLLOW"));
+        registerReceiver(unfollowReceiver, new IntentFilter("com.artto.instagramunfollowers.UNFOLLOW"));
     }
 
     @Override
@@ -56,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
         @SuppressLint("StaticFieldLeak")
         @Override
         public void onReceive(Context context, Intent intent) {
-            new AsyncTask<Long, Void, Void>() {
+            new AsyncTask<Long, Integer, Void>() {
                 @Override
                 protected Void doInBackground(Long... longs) {
                     try {
@@ -66,8 +73,14 @@ public class MainActivity extends AppCompatActivity {
                     }
                     return null;
                 }
+
+                @Override
+                protected void onPostExecute(Void aVoid) {
+                    super.onPostExecute(aVoid);
+                    bUnfollowAll.setText(getString(R.string.bUnfollowAllCount,
+                            adapter.getItemCount()));
+                }
             }.execute(intent.getLongExtra("username", 0));
-            bUnfollowAll.setText(getString(R.string.bUnfollowAllCount, intent.getIntExtra("count", 0)));
         }
     };
 
@@ -83,6 +96,38 @@ public class MainActivity extends AppCompatActivity {
 
     void login() {
         startActivityForResult(new Intent(this, LoginActivity.class), 0);
+    }
+
+    @SuppressLint("StaticFieldLeak")
+    void unfollowAll() {
+        new AsyncTask<long[], Void, Void>() {
+            @Override
+            protected Void doInBackground(long[]... longs) {
+                for (long user : longs[0]) {
+                    try {
+                        Thread.sleep(random.nextInt(5) * 1000);
+                        instagram.sendRequest(new InstagramUnfollowRequest(user));
+                    } catch (IOException | InterruptedException e) {
+                        e.printStackTrace();
+                    } finally {
+                        publishProgress();
+                    }
+                }
+                return null;
+            }
+
+            @Override
+            protected void onProgressUpdate(Void... values) {
+                super.onProgressUpdate(values);
+                adapter.removeItem(0);
+                bUnfollowAll.setText(getString(R.string.bUnfollowAllCount,
+                        adapter.getItemCount()));
+            }
+        }.execute(adapter.getUnfollowAllList());
+    }
+
+    public void onClickUnfollow(View view) {
+        showUnfollowDialog();
     }
 
     @SuppressLint("StaticFieldLeak")
@@ -171,5 +216,24 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }.execute();
+    }
+
+    void showUnfollowDialog() {
+        AlertDialog.Builder adb = new AlertDialog.Builder(this)
+                .setTitle(R.string.attention)
+                .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int i) {
+                        unfollowAll();
+                    }
+                })
+                .setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int i) {
+                        dialog.cancel();
+                    }
+                })
+                .setMessage(R.string.dialogUnfollowAll);
+        adb.show();
     }
 }
