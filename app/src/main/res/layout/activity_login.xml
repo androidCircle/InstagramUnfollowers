@@ -37,8 +37,8 @@
         <android.support.design.widget.TextInputEditText
             android:id="@+id/etLogin"
             android:textSize="16sp"
-            android:textColor="@color/colorAccent"
-            android:backgroundTint="@color/colorAccent"
+            android:textColor="@color/white"
+            android:backgroundTint="@color/white"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/etLogin"
@@ -55,8 +55,8 @@
         <android.support.design.widget.TextInputEditText
             android:id="@+id/etPassword"
             android:textSize="16sp"
-            android:textColor="@color/colorAccent"
-            android:backgroundTint="@color/colorAccent"
+            android:textColor="@color/white"
+            android:backgroundTint="@color/white"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/etPassword"
@@ -68,7 +68,7 @@
         android:id="@+id/bLogin"
         android:text="@string/bLogin"
         android:backgroundTint="@color/colorPrimary"
-        android:textColor="@color/colorAccent"
+        android:textColor="@color/white"
         android:onClick="onClick"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
