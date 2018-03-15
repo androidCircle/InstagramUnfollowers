@@ -41,7 +41,7 @@ public class Adapter extends RecyclerView.Adapter<Adapter.UserViewHolder> {
     void removeItem(final int position) {
         users.remove(position);
         notifyItemRemoved(position);
-        notifyItemRangeChanged(position, users.size());
+        notifyItemRangeChanged(position, users.size(), null);
     }
 
     @Override
@@ -61,8 +61,7 @@ public class Adapter extends RecyclerView.Adapter<Adapter.UserViewHolder> {
             public void onClick(View view) {
                 final int position = holder.getAdapterPosition();
                 context.sendBroadcast(new Intent("com.artto.instagramunfollowers.UNFOLLOW")
-                        .putExtra("username", users.get(position).getPk())
-                        .putExtra("count", users.size()));
+                        .putExtra("username", users.get(position).getPk()));
                 removeItem(position);
             }
         });

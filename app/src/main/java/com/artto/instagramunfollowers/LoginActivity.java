@@ -18,20 +18,17 @@ public class LoginActivity extends AppCompatActivity {
 
         etLogin = findViewById(R.id.etLogin);
         etPassword = findViewById(R.id.etPassword);
+        if (savedInstanceState != null) {
+            etLogin.setText(savedInstanceState.getString("username"));
+            etPassword.setText(savedInstanceState.getString("password"));
+        }
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
         outState.putString("username", etLogin.getText().toString());
         outState.putString("password", etPassword.getText().toString());
-    }
-
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        etLogin.setText(savedInstanceState.getString("username"));
-        etPassword.setText(savedInstanceState.getString("password"));
+        super.onSaveInstanceState(outState);
     }
 
     public void onClick(View view) {

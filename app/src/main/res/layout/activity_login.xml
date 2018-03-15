@@ -26,8 +26,7 @@
         android:orientation="vertical"
         android:layout_marginStart="60dp"
         android:layout_marginEnd="60dp"
-        android:layout_marginBottom="15dp"
-        tools:ignore="UselessParent">
+        android:layout_marginBottom="15dp">
 
     <android.support.design.widget.TextInputLayout
         android:layout_width="match_parent"

@@ -2,7 +2,6 @@ package com.artto.instagramunfollowers;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -18,7 +17,6 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Random;
 import java.util.Vector;
 
@@ -31,11 +29,11 @@ import dev.niekirk.com.instagram4android.requests.payload.InstagramUserSummary;
 
 public class MainActivity extends AppCompatActivity {
 
-    Instagram4Android instagram;
-    Button bUnfollowAll;
-    DelayedProgressDialog spinner;
+    DelayedProgressDialog spinner = new DelayedProgressDialog();
     RecyclerView recycler;
-    Adapter adapter;
+    Button bUnfollowAll;
+    Instagram4Android instagram;
+    Adapter adapter = new Adapter();
     Random random = new Random();
 
     @Override
@@ -44,7 +42,11 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         initialize();
-        login();
+        if (savedInstanceState == null)
+            startLoginActivity();
+        else
+            login(savedInstanceState.getString("username"),
+                    savedInstanceState.getString("password"));
     }
 
     @Override
@@ -59,43 +61,81 @@ public class MainActivity extends AppCompatActivity {
         unregisterReceiver(unfollowReceiver);
     }
 
-    BroadcastReceiver unfollowReceiver = new BroadcastReceiver() {
-        @SuppressLint("StaticFieldLeak")
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            new AsyncTask<Long, Integer, Void>() {
-                @Override
-                protected Void doInBackground(Long... longs) {
-                    try {
-                        instagram.sendRequest(new InstagramUnfollowRequest(longs[0]));
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    return null;
-                }
-
-                @Override
-                protected void onPostExecute(Void aVoid) {
-                    super.onPostExecute(aVoid);
-                    bUnfollowAll.setText(getString(R.string.bUnfollowAllCount,
-                            adapter.getItemCount()));
-                }
-            }.execute(intent.getLongExtra("username", 0));
-        }
-    };
-
     private void initialize() {
-        bUnfollowAll = findViewById(R.id.bUnfollowAll);
         recycler = findViewById(R.id.recycler);
         recycler.setHasFixedSize(true);
         recycler.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new Adapter();
         recycler.setAdapter(adapter);
-        spinner = new DelayedProgressDialog();
+
+        bUnfollowAll = findViewById(R.id.bUnfollowAll);
     }
 
-    void login() {
+    private void startLoginActivity() {
         startActivityForResult(new Intent(this, LoginActivity.class), 0);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode != RESULT_OK)
+            startLoginActivity();
+        else
+            login(data.getStringExtra("username"), data.getStringExtra("password"));
+    }
+
+    @SuppressLint("StaticFieldLeak")
+    private void login(final String username, final String password) {
+        spinner.show(getSupportFragmentManager(), "login");
+        instagram = Instagram4Android.builder()
+                .username(username)
+                .password(password)
+                .build();
+        instagram.setup();
+
+        new AsyncTask<Void, Void, Void>() {
+            @Override
+            protected Void doInBackground(Void... voids) {
+                try {
+                    instagram.login();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                if (!instagram.isLoggedIn()) {
+                    spinner.cancel();
+                    Toast.makeText(getApplicationContext(), R.string.loginError, Toast.LENGTH_LONG).show();
+                    startLoginActivity();
+                } else {
+                    loadData();
+                }
+            }
+        }.execute();
+    }
+
+    public void onClickUnfollow(View view) {
+        showUnfollowDialog();
+    }
+
+    private void showUnfollowDialog() {
+        AlertDialog.Builder adb = new AlertDialog.Builder(this)
+                .setTitle(R.string.attention)
+                .setMessage(R.string.dialogUnfollowAll)
+                .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int i) {
+                        unfollowAll();
+                    }
+                })
+                .setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int i) {
+                        dialog.cancel();
+                    }
+                });
+        adb.show();
     }
 
     @SuppressLint("StaticFieldLeak")
@@ -118,16 +158,11 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             protected void onProgressUpdate(Void... values) {
-                super.onProgressUpdate(values);
                 adapter.removeItem(0);
                 bUnfollowAll.setText(getString(R.string.bUnfollowAllCount,
                         adapter.getItemCount()));
             }
         }.execute(adapter.getUnfollowAllList());
-    }
-
-    public void onClickUnfollow(View view) {
-        showUnfollowDialog();
     }
 
     @SuppressLint("StaticFieldLeak")
@@ -143,17 +178,14 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     result = instagram.sendRequest(new InstagramGetUserFollowersRequest(userId));
                     followers.addAll(result.getUsers());
-                    for(;;) {
-                        if (result.getNext_max_id() == null)
-                            break;
+                    while (result.getNext_max_id() != null){
                         result = instagram.sendRequest(new InstagramGetUserFollowersRequest(userId, result.getNext_max_id()));
                         followers.addAll(result.getUsers());
                     }
+
                     result = instagram.sendRequest(new InstagramGetUserFollowingRequest(userId));
                     following.addAll(result.getUsers());
-                    for(;;) {
-                        if (result.getNext_max_id() == null)
-                            break;
+                    while (result.getNext_max_id() != null){
                         result = instagram.sendRequest(new InstagramGetUserFollowingRequest(userId, result.getNext_max_id()));
                         following.addAll(result.getUsers());
                     }
@@ -167,9 +199,8 @@ public class MainActivity extends AppCompatActivity {
             protected void onPostExecute(Void aVoid) {
                 Vector<InstagramUserSummary> unfollowers = new Vector<>(following);
                 for (InstagramUserSummary i : following) {
-                    final String s = i.getUsername();
                     for (InstagramUserSummary j : followers) {
-                        if (s.equals(j.getUsername())) {
+                        if (i.equals(j)) {
                             unfollowers.remove(i);
                             break;
                         }
@@ -182,58 +213,36 @@ public class MainActivity extends AppCompatActivity {
         }.execute();
     }
 
-    @SuppressLint("StaticFieldLeak")
+    BroadcastReceiver unfollowReceiver = new BroadcastReceiver() {
+        @SuppressLint("StaticFieldLeak")
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            new AsyncTask<Long, Integer, Void>() {
+                @Override
+                protected Void doInBackground(Long... longs) {
+                    try {
+                        instagram.sendRequest(new InstagramUnfollowRequest(longs[0]));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    return null;
+                }
+
+                @Override
+                protected void onPostExecute(Void aVoid) {
+                    bUnfollowAll.setText(getString(R.string.bUnfollowAllCount,
+                            adapter.getItemCount()));
+                }
+            }.execute(intent.getLongExtra("username", 0));
+        }
+    };
+
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (resultCode != RESULT_OK) login();
-        spinner.show(getSupportFragmentManager(), "login");
-        instagram = Instagram4Android.builder()
-                .username(data.getStringExtra("username"))
-                .password(data.getStringExtra("password"))
-                .build();
-        instagram.setup();
-
-        new AsyncTask<Void, Void, Void>() {
-            @Override
-            protected Void doInBackground(Void... voids) {
-                try {
-                    instagram.login();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                return null;
-            }
-
-            @Override
-            protected void onPostExecute(Void aVoid) {
-                super.onPostExecute(aVoid);
-                if (!instagram.isLoggedIn()) {
-                    spinner.cancel();
-                    Toast.makeText(getApplicationContext(), R.string.loginError, Toast.LENGTH_LONG).show();
-                    login();
-                } else {
-                    loadData();
-                }
-            }
-        }.execute();
-    }
-
-    void showUnfollowDialog() {
-        AlertDialog.Builder adb = new AlertDialog.Builder(this)
-                .setTitle(R.string.attention)
-                .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int i) {
-                        unfollowAll();
-                    }
-                })
-                .setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int i) {
-                        dialog.cancel();
-                    }
-                })
-                .setMessage(R.string.dialogUnfollowAll);
-        adb.show();
+    protected void onSaveInstanceState(Bundle outState) {
+        if (instagram != null && instagram.isLoggedIn()) {
+            outState.putString("username", instagram.getUsername());
+            outState.putString("password", instagram.getPassword());
+        }
+        super.onSaveInstanceState(outState);
     }
 }
