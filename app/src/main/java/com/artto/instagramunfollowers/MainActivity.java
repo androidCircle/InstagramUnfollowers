@@ -35,6 +35,9 @@ public class MainActivity extends AppCompatActivity {
     Instagram4Android instagram;
     Adapter adapter = new Adapter();
     Random random = new Random();
+    AsyncTask undollowingTask;
+
+    boolean isUnfollowingActive = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -116,7 +119,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onClickUnfollow(View view) {
-        showUnfollowDialog();
+        if (isUnfollowingActive)
+            undollowingTask.cancel(false);
+        else
+            showUnfollowDialog();
     }
 
     private void showUnfollowDialog() {
@@ -126,6 +132,8 @@ public class MainActivity extends AppCompatActivity {
                 .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int i) {
+                        isUnfollowingActive = true;
+                        bUnfollowAll.setText(R.string.stop);
                         unfollowAll();
                     }
                 })
@@ -140,7 +148,7 @@ public class MainActivity extends AppCompatActivity {
 
     @SuppressLint("StaticFieldLeak")
     void unfollowAll() {
-        new AsyncTask<long[], Void, Void>() {
+        undollowingTask = new AsyncTask<long[], Void, Void>() {
             @Override
             protected Void doInBackground(long[]... longs) {
                 for (long user : longs[0]) {
@@ -159,8 +167,22 @@ public class MainActivity extends AppCompatActivity {
             @Override
             protected void onProgressUpdate(Void... values) {
                 adapter.removeItem(0);
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                onStop();
+            }
+
+            @Override
+            protected void onCancelled() {
+                onStop();
+            }
+
+            void onStop() {
                 bUnfollowAll.setText(getString(R.string.bUnfollowAllCount,
                         adapter.getItemCount()));
+                isUnfollowingActive = false;
             }
         }.execute(adapter.getUnfollowAllList());
     }

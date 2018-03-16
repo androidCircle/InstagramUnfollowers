@@ -8,6 +8,7 @@
     <string name="bUnfollowAll">Отписаться от всех</string>
     <string name="dialogUnfollowAll">Отписаться от всех?</string>
     <string name="bUnfollowAllCount">Отписаться от всех (%1$d)</string>
+    <string name="stop">Стоп</string>
     <string name="yes">Да</string>
     <string name="no">Нет</string>
     <string name="attention">Внимание!</string>
