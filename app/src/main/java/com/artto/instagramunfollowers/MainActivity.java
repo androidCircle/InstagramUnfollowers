@@ -9,11 +9,13 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.IOException;
@@ -30,6 +32,8 @@ import dev.niekirk.com.instagram4android.requests.payload.InstagramUserSummary;
 public class MainActivity extends AppCompatActivity {
 
     DelayedProgressDialog spinner = new DelayedProgressDialog();
+    TextView tvUsername;
+    SwipeRefreshLayout refreshLayout;
     RecyclerView recycler;
     Button bUnfollowAll;
     Instagram4Android instagram;
@@ -65,6 +69,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initialize() {
+        tvUsername = findViewById(R.id.tvUsername);
+        refreshLayout = findViewById(R.id.refreshLayout);
+        refreshLayout.setColorSchemeResources(R.color.colorPrimary);
+        refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                if (isUnfollowingActive)
+                    undollowingTask.cancel(false);
+                loadData();
+            }
+        });
+
         recycler = findViewById(R.id.recycler);
         recycler.setHasFixedSize(true);
         recycler.setLayoutManager(new LinearLayoutManager(this));
@@ -112,6 +128,7 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(getApplicationContext(), R.string.loginError, Toast.LENGTH_LONG).show();
                     startLoginActivity();
                 } else {
+                    tvUsername.setText(instagram.getUsername());
                     loadData();
                 }
             }
@@ -121,20 +138,41 @@ public class MainActivity extends AppCompatActivity {
     public void onClickUnfollow(View view) {
         if (isUnfollowingActive)
             undollowingTask.cancel(false);
-        else
-            showUnfollowDialog();
+        else {
+            AlertDialog.Builder adb = new AlertDialog.Builder(this)
+                    .setTitle(R.string.attention)
+                    .setMessage(R.string.dialogUnfollowAll)
+                    .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int i) {
+                            isUnfollowingActive = true;
+                            bUnfollowAll.setText(R.string.stop);
+                            unfollowAll();
+                        }
+                    })
+                    .setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int i) {
+                            dialog.cancel();
+                        }
+                    });
+            adb.show();
+        }
     }
 
-    private void showUnfollowDialog() {
+    public void onClickUsername (final View view) {
         AlertDialog.Builder adb = new AlertDialog.Builder(this)
                 .setTitle(R.string.attention)
-                .setMessage(R.string.dialogUnfollowAll)
+                .setMessage(R.string.dialogLogOut)
                 .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int i) {
-                        isUnfollowingActive = true;
-                        bUnfollowAll.setText(R.string.stop);
-                        unfollowAll();
+                        if (isUnfollowingActive)
+                            undollowingTask.cancel(false);
+                        startLoginActivity();
+                        tvUsername.setText("");
+                        adapter.setUsers(new Vector<InstagramUserSummary>());
+                        bUnfollowAll.setText(R.string.bUnfollowAll);
                     }
                 })
                 .setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
@@ -231,6 +269,7 @@ public class MainActivity extends AppCompatActivity {
                 adapter.setUsers(unfollowers);
                 bUnfollowAll.setText(getString(R.string.bUnfollowAllCount, unfollowers.size()));
                 spinner.cancel();
+                refreshLayout.setRefreshing(false);
             }
         }.execute();
     }

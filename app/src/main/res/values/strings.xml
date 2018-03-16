@@ -7,6 +7,7 @@
     <string name="loginError">Ошибка при авторизации</string>
     <string name="bUnfollowAll">Отписаться от всех</string>
     <string name="dialogUnfollowAll">Отписаться от всех?</string>
+    <string name="dialogLogOut">Выйти из аккаунта?</string>
     <string name="bUnfollowAllCount">Отписаться от всех (%1$d)</string>
     <string name="stop">Стоп</string>
     <string name="yes">Да</string>
