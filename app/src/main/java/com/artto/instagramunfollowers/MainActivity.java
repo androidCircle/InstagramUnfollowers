@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -36,11 +37,15 @@ public class MainActivity extends AppCompatActivity {
     SwipeRefreshLayout refreshLayout;
     RecyclerView recycler;
     Button bUnfollowAll;
+
     Instagram4Android instagram;
     Adapter adapter = new Adapter();
     Random random = new Random();
-    AsyncTask undollowingTask;
 
+    SharedPreferences.Editor editor;
+    SharedPreferences settings;
+
+    AsyncTask undollowingTask;
     boolean isUnfollowingActive = false;
 
     @Override
@@ -49,26 +54,20 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         initialize();
-        if (savedInstanceState == null)
-            startLoginActivity();
-        else
+        if (savedInstanceState != null)
             login(savedInstanceState.getString("username"),
                     savedInstanceState.getString("password"));
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        registerReceiver(unfollowReceiver, new IntentFilter("com.artto.instagramunfollowers.UNFOLLOW"));
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        unregisterReceiver(unfollowReceiver);
+        else if (settings.getBoolean("saved", false))
+            login(settings.getString("username", ""),
+                    settings.getString("password", ""));
+        else
+            startLoginActivity();
     }
 
     private void initialize() {
+        settings = getSharedPreferences("INSTAGRAM_UNFOLLOWERS", Context.MODE_PRIVATE);
+        editor = settings.edit();
+
         tvUsername = findViewById(R.id.tvUsername);
         refreshLayout = findViewById(R.id.refreshLayout);
         refreshLayout.setColorSchemeResources(R.color.colorPrimary);
@@ -98,7 +97,8 @@ public class MainActivity extends AppCompatActivity {
         if (resultCode != RESULT_OK)
             startLoginActivity();
         else
-            login(data.getStringExtra("username"), data.getStringExtra("password"));
+            login(data.getStringExtra("username"),
+                    data.getStringExtra("password"));
     }
 
     @SuppressLint("StaticFieldLeak")
@@ -128,8 +128,14 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(getApplicationContext(), R.string.loginError, Toast.LENGTH_LONG).show();
                     startLoginActivity();
                 } else {
-                    tvUsername.setText(instagram.getUsername());
                     loadData();
+                    tvUsername.setText(username);
+                    if (!settings.getBoolean("saved", false)) {
+                        editor.putBoolean("saved", true);
+                        editor.putString("username", username);
+                        editor.putString("password", password);
+                        editor.commit();
+                    }
                 }
             }
         }.execute();
@@ -173,6 +179,8 @@ public class MainActivity extends AppCompatActivity {
                         tvUsername.setText("");
                         adapter.setUsers(new Vector<InstagramUserSummary>());
                         bUnfollowAll.setText(R.string.bUnfollowAll);
+                        editor.clear();
+                        editor.commit();
                     }
                 })
                 .setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
@@ -297,6 +305,18 @@ public class MainActivity extends AppCompatActivity {
             }.execute(intent.getLongExtra("username", 0));
         }
     };
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        registerReceiver(unfollowReceiver, new IntentFilter("com.artto.instagramunfollowers.UNFOLLOW"));
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(unfollowReceiver);
+    }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
