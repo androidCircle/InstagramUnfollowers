@@ -68,7 +68,6 @@ public class MainActivity extends AppCompatActivity {
         settings = getSharedPreferences("INSTAGRAM_UNFOLLOWERS", Context.MODE_PRIVATE);
         editor = settings.edit();
 
-        tvUsername = findViewById(R.id.tvUsername);
         refreshLayout = findViewById(R.id.refreshLayout);
         refreshLayout.setColorSchemeResources(R.color.colorPrimary);
         refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
@@ -82,9 +81,13 @@ public class MainActivity extends AppCompatActivity {
 
         recycler = findViewById(R.id.recycler);
         recycler.setHasFixedSize(true);
+        recycler.setItemViewCacheSize(20);
+        recycler.setDrawingCacheEnabled(true);
+        recycler.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
         recycler.setLayoutManager(new LinearLayoutManager(this));
         recycler.setAdapter(adapter);
 
+        tvUsername = findViewById(R.id.tvUsername);
         bUnfollowAll = findViewById(R.id.bUnfollowAll);
     }
 
@@ -177,7 +180,7 @@ public class MainActivity extends AppCompatActivity {
                             undollowingTask.cancel(false);
                         startLoginActivity();
                         tvUsername.setText("");
-                        adapter.setUsers(new Vector<InstagramUserSummary>());
+                        adapter.setUsers(new Vector<InstagramUserSummary>(), getApplicationContext());
                         bUnfollowAll.setText(R.string.bUnfollowAll);
                         editor.clear();
                         editor.commit();
@@ -226,11 +229,10 @@ public class MainActivity extends AppCompatActivity {
             }
 
             void onStop() {
-                bUnfollowAll.setText(getString(R.string.bUnfollowAllCount,
-                        adapter.getItemCount()));
+                bUnfollowAll.setText(getString(R.string.bUnfollowAll));
                 isUnfollowingActive = false;
             }
-        }.execute(adapter.getUnfollowAllList());
+        }.execute(adapter.getUnfollowAllList(50));
     }
 
     @SuppressLint("StaticFieldLeak")
@@ -274,8 +276,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                 }
-                adapter.setUsers(unfollowers);
-                bUnfollowAll.setText(getString(R.string.bUnfollowAllCount, unfollowers.size()));
+                adapter.setUsers(unfollowers, getApplicationContext());
                 spinner.cancel();
                 refreshLayout.setRefreshing(false);
             }
@@ -295,12 +296,6 @@ public class MainActivity extends AppCompatActivity {
                         e.printStackTrace();
                     }
                     return null;
-                }
-
-                @Override
-                protected void onPostExecute(Void aVoid) {
-                    bUnfollowAll.setText(getString(R.string.bUnfollowAllCount,
-                            adapter.getItemCount()));
                 }
             }.execute(intent.getLongExtra("username", 0));
         }

@@ -1,5 +1,6 @@
 package com.artto.instagramunfollowers;
 
+import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -14,6 +15,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 
 import java.util.Vector;
 
@@ -24,17 +26,18 @@ public class Adapter extends RecyclerView.Adapter<Adapter.UserViewHolder> {
     private Vector<InstagramUserSummary> users = new Vector<>();
     private Context context;
 
-    void setUsers(Vector<InstagramUserSummary> users) {
+    void setUsers(Vector<InstagramUserSummary> users, Context context) {
+        this.context = context;
         this.users = users;
         notifyDataSetChanged();
     }
 
-    long[] getUnfollowAllList() {
-        final int size = users.size();
-        long[] result = new long[size];
-        for (int i = 0; i < size; i++) {
+    long[] getUnfollowAllList(int count) {
+        long[] result = new long[count];
+        if (count > users.size())
+            count = users.size();
+        for (int i = 0; i < count; i++)
             result[i] = users.get(i).getPk();
-        }
         return result;
     }
 
@@ -46,15 +49,17 @@ public class Adapter extends RecyclerView.Adapter<Adapter.UserViewHolder> {
 
     @Override
     public UserViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        context = parent.getContext();
-        View v = LayoutInflater.from(context).inflate(R.layout.card_person, parent, false);
+        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.card_person, parent, false);
         return new UserViewHolder(v);
     }
 
     @Override
     public void onBindViewHolder(final UserViewHolder holder, final int i) {
         holder.username.setText(users.get(i).getUsername());
-        Glide.with(context).load(users.get(i).getProfile_pic_url()).into(holder.imageView);
+        Glide.with(context)
+                .load(users.get(i).getProfile_pic_url())
+                .transition(DrawableTransitionOptions.withCrossFade())
+                .into(holder.imageView);
 
         holder.button.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -69,13 +74,12 @@ public class Adapter extends RecyclerView.Adapter<Adapter.UserViewHolder> {
         holder.cardView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                final int position = holder.getAdapterPosition();
-                context.startActivity(newInstagramProfileIntent(users.get(position).getUsername()));
+                context.startActivity(instProfileIntent(users.get(holder.getAdapterPosition()).getUsername()));
             }
         });
     }
 
-    private Intent newInstagramProfileIntent(String username) {
+    private Intent instProfileIntent(final String username) {
         final Intent intent = new Intent(Intent.ACTION_VIEW);
         try {
             if (context.getPackageManager().getPackageInfo("com.instagram.android", 0) != null) {

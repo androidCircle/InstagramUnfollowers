@@ -5,10 +5,9 @@
     <string name="bLogin">Войти</string>
     <string name="Unfollow">Отписаться</string>
     <string name="loginError">Ошибка при авторизации</string>
-    <string name="bUnfollowAll">Отписаться от всех</string>
-    <string name="dialogUnfollowAll">Отписаться от всех?</string>
+    <string name="bUnfollowAll">Отписаться от первых 50</string>
+    <string name="dialogUnfollowAll">Отписаться от первых 50?</string>
     <string name="dialogLogOut">Выйти из аккаунта?</string>
-    <string name="bUnfollowAllCount">Отписаться от всех (%1$d)</string>
     <string name="stop">Стоп</string>
     <string name="yes">Да</string>
     <string name="no">Нет</string>
