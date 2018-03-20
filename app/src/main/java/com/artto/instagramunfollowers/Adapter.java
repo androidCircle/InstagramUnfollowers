@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
@@ -68,10 +69,10 @@ public class Adapter extends RecyclerView.Adapter<Adapter.UserViewHolder> {
             }
         });
 
-        holder.cardView.setOnClickListener(new View.OnClickListener() {
+        holder.layout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Context context = holder.cardView.getContext();
+                Context context = holder.layout.getContext();
                 context.startActivity(instProfileIntent(users.get(holder.getAdapterPosition()).getUsername(), context));
             }
         });
@@ -97,13 +98,13 @@ public class Adapter extends RecyclerView.Adapter<Adapter.UserViewHolder> {
     }
 
     static class UserViewHolder extends RecyclerView.ViewHolder {
-        CardView cardView;
+        LinearLayout layout;
         ImageView imageView;
         TextView username;
         Button button;
         UserViewHolder(View itemView) {
             super(itemView);
-            cardView = itemView.findViewById(R.id.cvUser);
+            layout = itemView.findViewById(R.id.layout);
             imageView = itemView.findViewById(R.id.person_photo);
             username = itemView.findViewById(R.id.cvUsername);
             button = itemView.findViewById(R.id.button);
