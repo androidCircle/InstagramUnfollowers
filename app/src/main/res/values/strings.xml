@@ -13,4 +13,5 @@
     <string name="no">Нет</string>
     <string name="attention">Внимание!</string>
     <string name="logoDescription">logo</string>
+    <string name="tvUsername">%s - выход</string>
 </resources>

@@ -20,8 +20,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Random;
-import java.util.Vector;
 
 import dev.niekirk.com.instagram4android.Instagram4Android;
 import dev.niekirk.com.instagram4android.requests.InstagramGetUserFollowersRequest;
@@ -132,7 +132,7 @@ public class MainActivity extends AppCompatActivity {
                     startLoginActivity();
                 } else {
                     loadData();
-                    tvUsername.setText(username);
+                    tvUsername.setText(getString(R.string.tvUsername, username));
                     if (!settings.getBoolean("saved", false)) {
                         editor.putBoolean("saved", true);
                         editor.putString("username", username);
@@ -180,7 +180,7 @@ public class MainActivity extends AppCompatActivity {
                             undollowingTask.cancel(false);
                         startLoginActivity();
                         tvUsername.setText("");
-                        adapter.setUsers(new Vector<InstagramUserSummary>(), getApplicationContext());
+                        adapter.setUsers(new ArrayList<InstagramUserSummary>());
                         bUnfollowAll.setText(R.string.bUnfollowAll);
                         editor.clear();
                         editor.commit();
@@ -238,8 +238,8 @@ public class MainActivity extends AppCompatActivity {
     @SuppressLint("StaticFieldLeak")
     void loadData() {
         new AsyncTask<Void, Void, Void>() {
-            Vector<InstagramUserSummary> followers = new Vector<>();
-            Vector<InstagramUserSummary> following = new Vector<>();
+            ArrayList<InstagramUserSummary> followers = new ArrayList<>();
+            ArrayList<InstagramUserSummary> following = new ArrayList<>();
 
             @Override
             protected Void doInBackground(Void... voids) {
@@ -267,7 +267,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             protected void onPostExecute(Void aVoid) {
-                Vector<InstagramUserSummary> unfollowers = new Vector<>(following);
+                ArrayList<InstagramUserSummary> unfollowers = new ArrayList<>(following);
                 for (InstagramUserSummary i : following) {
                     for (InstagramUserSummary j : followers) {
                         if (i.equals(j)) {
@@ -276,7 +276,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                 }
-                adapter.setUsers(unfollowers, getApplicationContext());
+                adapter.setUsers(unfollowers);
                 spinner.cancel();
                 refreshLayout.setRefreshing(false);
             }
