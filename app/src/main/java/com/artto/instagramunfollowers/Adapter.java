@@ -1,6 +1,5 @@
 package com.artto.instagramunfollowers;
 
-import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -17,17 +16,15 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 
-import java.util.Vector;
+import java.util.ArrayList;
 
 import dev.niekirk.com.instagram4android.requests.payload.InstagramUserSummary;
 
 public class Adapter extends RecyclerView.Adapter<Adapter.UserViewHolder> {
 
-    private Vector<InstagramUserSummary> users = new Vector<>();
-    private Context context;
+    private ArrayList<InstagramUserSummary> users = new ArrayList<>();
 
-    void setUsers(Vector<InstagramUserSummary> users, Context context) {
-        this.context = context;
+    void setUsers(ArrayList<InstagramUserSummary> users) {
         this.users = users;
         notifyDataSetChanged();
     }
@@ -56,7 +53,7 @@ public class Adapter extends RecyclerView.Adapter<Adapter.UserViewHolder> {
     @Override
     public void onBindViewHolder(final UserViewHolder holder, final int i) {
         holder.username.setText(users.get(i).getUsername());
-        Glide.with(context)
+        Glide.with(holder.imageView.getContext())
                 .load(users.get(i).getProfile_pic_url())
                 .transition(DrawableTransitionOptions.withCrossFade())
                 .into(holder.imageView);
@@ -65,7 +62,7 @@ public class Adapter extends RecyclerView.Adapter<Adapter.UserViewHolder> {
             @Override
             public void onClick(View view) {
                 final int position = holder.getAdapterPosition();
-                context.sendBroadcast(new Intent("com.artto.instagramunfollowers.UNFOLLOW")
+                holder.button.getContext().sendBroadcast(new Intent("com.artto.instagramunfollowers.UNFOLLOW")
                         .putExtra("username", users.get(position).getPk()));
                 removeItem(position);
             }
@@ -74,12 +71,13 @@ public class Adapter extends RecyclerView.Adapter<Adapter.UserViewHolder> {
         holder.cardView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                context.startActivity(instProfileIntent(users.get(holder.getAdapterPosition()).getUsername()));
+                Context context = holder.cardView.getContext();
+                context.startActivity(instProfileIntent(users.get(holder.getAdapterPosition()).getUsername(), context));
             }
         });
     }
 
-    private Intent instProfileIntent(final String username) {
+    private Intent instProfileIntent(final String username, Context context) {
         final Intent intent = new Intent(Intent.ACTION_VIEW);
         try {
             if (context.getPackageManager().getPackageInfo("com.instagram.android", 0) != null) {
