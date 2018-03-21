@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
-import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -23,17 +22,22 @@ import dev.niekirk.com.instagram4android.requests.payload.InstagramUserSummary;
 
 public class Adapter extends RecyclerView.Adapter<Adapter.UserViewHolder> {
 
+    private ArrayList<InstagramUserSummary> fullList = new ArrayList<>();
     private ArrayList<InstagramUserSummary> users = new ArrayList<>();
 
     void setUsers(ArrayList<InstagramUserSummary> users) {
-        this.users = users;
+        this.users.clear();
+        fullList = users;
+        loadMore();
         notifyDataSetChanged();
     }
 
-    long[] getUnfollowAllList(int count) {
+    long[] getUnfollowAllList() {
+        int count = getItemCount() >= 50 ? 50 : getItemCount();
+        if (count == 0)
+            return new long[] {0};
+
         long[] result = new long[count];
-        if (count > users.size())
-            count = users.size();
         for (int i = 0; i < count; i++)
             result[i] = users.get(i).getPk();
         return result;
@@ -45,10 +49,30 @@ public class Adapter extends RecyclerView.Adapter<Adapter.UserViewHolder> {
         notifyItemRangeChanged(position, users.size(), null);
     }
 
-    @Override
-    public UserViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.card_person, parent, false);
-        return new UserViewHolder(v);
+    int loadMore() {
+        if (fullList.isEmpty())
+            return 0;
+
+        int count = fullList.size() >= 50 ? 50 : fullList.size();
+        for (; count > 0; count--) {
+            users.add(fullList.get(0));
+            fullList.remove(0);
+        }
+        return count;
+    }
+
+    private Intent instProfileIntent(final String username, Context context) {
+        final Intent intent = new Intent(Intent.ACTION_VIEW);
+        try {
+            if (context.getPackageManager().getPackageInfo("com.instagram.android", 0) != null) {
+                intent.setData(Uri.parse("http://instagram.com/_u/" + username));
+                intent.setPackage("com.instagram.android");
+                return intent;
+            }
+        } catch (PackageManager.NameNotFoundException ignored) {
+        }
+        intent.setData(Uri.parse("http://instagram.com/" + username));
+        return intent;
     }
 
     @Override
@@ -78,18 +102,10 @@ public class Adapter extends RecyclerView.Adapter<Adapter.UserViewHolder> {
         });
     }
 
-    private Intent instProfileIntent(final String username, Context context) {
-        final Intent intent = new Intent(Intent.ACTION_VIEW);
-        try {
-            if (context.getPackageManager().getPackageInfo("com.instagram.android", 0) != null) {
-                intent.setData(Uri.parse("http://instagram.com/_u/" + username));
-                intent.setPackage("com.instagram.android");
-                return intent;
-            }
-        } catch (PackageManager.NameNotFoundException ignored) {
-        }
-        intent.setData(Uri.parse("http://instagram.com/" + username));
-        return intent;
+    @Override
+    public UserViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.card_person, parent, false);
+        return new UserViewHolder(v);
     }
 
     @Override

@@ -81,11 +81,24 @@ public class MainActivity extends AppCompatActivity {
 
         recycler = findViewById(R.id.recycler);
         recycler.setHasFixedSize(true);
-        recycler.setItemViewCacheSize(20);
+        recycler.setItemViewCacheSize(30);
         recycler.setDrawingCacheEnabled(true);
         recycler.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
-        recycler.setLayoutManager(new LinearLayoutManager(this));
+        LinearLayoutManager llm = new LinearLayoutManager(this);
+        recycler.setLayoutManager(llm);
         recycler.setAdapter(adapter);
+        recycler.addOnScrollListener(new OnScrollListener(llm) {
+            @Override
+            public void onLoadMore() {
+                final int count = adapter.loadMore();
+                recycler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        adapter.notifyItemRangeInserted(adapter.getItemCount() - count, adapter.getItemCount());
+                    }
+                });
+            }
+        });
 
         tvUsername = findViewById(R.id.tvUsername);
         bUnfollowAll = findViewById(R.id.bUnfollowAll);
@@ -232,7 +245,7 @@ public class MainActivity extends AppCompatActivity {
                 bUnfollowAll.setText(getString(R.string.bUnfollowAll));
                 isUnfollowingActive = false;
             }
-        }.execute(adapter.getUnfollowAllList(50));
+        }.execute(adapter.getUnfollowAllList());
     }
 
     @SuppressLint("StaticFieldLeak")
