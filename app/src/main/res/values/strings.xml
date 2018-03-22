@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Instagram Unfollowers</string>
+    <string name="app_name">Unfollowers</string>
     <string name="etLogin">Username</string>
     <string name="etPassword">Password</string>
     <string name="bLogin">Sign in</string>
