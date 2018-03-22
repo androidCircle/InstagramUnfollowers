@@ -214,6 +214,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             protected Void doInBackground(long[]... longs) {
                 for (long user : longs[0]) {
+                    if (isCancelled())
+                        return null;
+
                     try {
                         Thread.sleep(random.nextInt(5) * 1000);
                         instagram.sendRequest(new InstagramUnfollowRequest(user));
