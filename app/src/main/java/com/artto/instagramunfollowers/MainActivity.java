@@ -14,8 +14,14 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
+import android.support.v7.widget.Toolbar;
+import android.view.KeyEvent;
 import android.view.View;
+import android.view.animation.AccelerateInterpolator;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -33,6 +39,8 @@ import dev.niekirk.com.instagram4android.requests.payload.InstagramUserSummary;
 public class MainActivity extends AppCompatActivity {
 
     DelayedProgressDialog spinner = new DelayedProgressDialog();
+    Toolbar toolbar;
+    SearchView searchView;
     TextView tvUsername;
     SwipeRefreshLayout refreshLayout;
     RecyclerView recycler;
@@ -79,6 +87,8 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        toolbar = findViewById(R.id.toolbar);
+
         recycler = findViewById(R.id.recycler);
         recycler.setHasFixedSize(true);
         recycler.setItemViewCacheSize(30);
@@ -102,6 +112,37 @@ public class MainActivity extends AppCompatActivity {
 
         tvUsername = findViewById(R.id.tvUsername);
         bUnfollowAll = findViewById(R.id.bUnfollowAll);
+
+        searchView = findViewById(R.id.searchView);
+        searchView.setMaxWidth(Integer.MAX_VALUE);
+        searchView.setOnSearchClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                tvUsername.setVisibility(View.INVISIBLE);
+            }
+        });
+        searchView.setOnCloseListener(new SearchView.OnCloseListener() {
+            @Override
+            public boolean onClose() {
+                tvUsername.setVisibility(View.VISIBLE);
+                return false;
+            }
+        });
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+//                if (newText.length() > 2)
+//                    adapter.search(newText);
+//                else
+//                    adapter.showAll();
+                return false;
+            }
+        });
     }
 
     private void startLoginActivity() {
@@ -145,7 +186,7 @@ public class MainActivity extends AppCompatActivity {
                     startLoginActivity();
                 } else {
                     loadData();
-                    tvUsername.setText(getString(R.string.tvUsername, username));
+                    tvUsername.setText(username);
                     if (!settings.getBoolean("saved", false)) {
                         editor.putBoolean("saved", true);
                         editor.putString("username", username);

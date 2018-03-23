@@ -61,6 +61,19 @@ public class Adapter extends RecyclerView.Adapter<Adapter.UserViewHolder> {
         return count;
     }
 
+    void showAll () {
+        setUsers(fullList);
+    }
+
+    void search (String s) {
+        users.clear();
+        for (InstagramUserSummary i : fullList) {
+            if (i.getUsername().contains(s))
+                users.add(i);
+            notifyDataSetChanged();
+        }
+    }
+
     private Intent instProfileIntent(final String username, Context context) {
         final Intent intent = new Intent(Intent.ACTION_VIEW);
         try {
