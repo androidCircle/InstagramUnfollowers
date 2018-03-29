@@ -11,14 +11,16 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
 
-    <TextView
+    <Button
         android:onClick="onClickUsername"
-        android:id="@+id/tvUsername"
+        android:id="@+id/bUsername"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="35dp"
         android:layout_gravity="end"
         android:layout_marginEnd="15dp"
-        android:textColor="@android:color/white"
-        android:textStyle="bold" />
+        android:textSize="12sp"
+        android:elevation="4dp"
+        android:backgroundTint="@android:color/white"
+        android:textColor="@color/colorPrimary" />
 
 </android.support.v7.widget.Toolbar>
