@@ -20,19 +20,20 @@ import java.util.ArrayList;
 
 import dev.niekirk.com.instagram4android.requests.payload.InstagramUserSummary;
 
-public class Adapter extends RecyclerView.Adapter<Adapter.UserViewHolder> {
+public abstract class Adapter extends RecyclerView.Adapter<Adapter.UserViewHolder> {
 
     private ArrayList<InstagramUserSummary> fullList = new ArrayList<>();
     private ArrayList<InstagramUserSummary> users = new ArrayList<>();
 
-    void setUsers(ArrayList<InstagramUserSummary> users) {
-        this.users.clear();
-        fullList = users;
-        loadMore();
+    void setUsers(ArrayList<InstagramUserSummary> list, boolean firstLoad) {
+        users = list;
         notifyDataSetChanged();
+
+        if (firstLoad)
+            fullList.addAll(users);
     }
 
-    long[] getUnfollowAllList() {
+    long[] getUnfollowList() {
         int count = getItemCount() >= 50 ? 50 : getItemCount();
         if (count == 0)
             return new long[] {0};
@@ -47,34 +48,28 @@ public class Adapter extends RecyclerView.Adapter<Adapter.UserViewHolder> {
         users.remove(position);
         notifyItemRemoved(position);
         notifyItemRangeChanged(position, users.size(), null);
+
+        int fullListPosition = -1;
+        for (int i = 0; i < fullList.size(); i++)
+            if (fullList.get(i).getPk() == users.get(position).getPk()) {
+                fullListPosition = i;
+                break;
+            }
+        if (fullListPosition != -1)
+            fullList.remove(fullListPosition);
     }
 
-    int loadMore() {
-        if (fullList.isEmpty())
-            return 0;
-
-        int count = fullList.size() >= 50 ? 50 : fullList.size();
-        for (; count > 0; count--) {
-            users.add(fullList.get(0));
-            fullList.remove(0);
-        }
-        return count;
+    void filter (final String s) {
+        if (s.equals(""))
+            setUsers(fullList, false);
+        ArrayList<InstagramUserSummary> result = new ArrayList<>();
+        for (InstagramUserSummary i : fullList)
+            if (i.getUsername().contains(s.toLowerCase()))
+                result.add(i);
+        setUsers(result, false);
     }
 
-    void showAll () {
-        setUsers(fullList);
-    }
-
-    void search (String s) {
-        users.clear();
-        for (InstagramUserSummary i : fullList) {
-            if (i.getUsername().contains(s))
-                users.add(i);
-            notifyDataSetChanged();
-        }
-    }
-
-    private Intent instProfileIntent(final String username, Context context) {
+    private Intent openProfile(final String username, Context context) {
         final Intent intent = new Intent(Intent.ACTION_VIEW);
         try {
             if (context.getPackageManager().getPackageInfo("com.instagram.android", 0) != null) {
@@ -82,11 +77,12 @@ public class Adapter extends RecyclerView.Adapter<Adapter.UserViewHolder> {
                 intent.setPackage("com.instagram.android");
                 return intent;
             }
-        } catch (PackageManager.NameNotFoundException ignored) {
-        }
+        } catch (PackageManager.NameNotFoundException ignored) {}
         intent.setData(Uri.parse("http://instagram.com/" + username));
         return intent;
     }
+
+    public abstract void unfollow(final long pk);
 
     @Override
     public void onBindViewHolder(final UserViewHolder holder, final int i) {
@@ -100,8 +96,7 @@ public class Adapter extends RecyclerView.Adapter<Adapter.UserViewHolder> {
             @Override
             public void onClick(View view) {
                 final int position = holder.getAdapterPosition();
-                holder.button.getContext().sendBroadcast(new Intent("com.artto.instagramunfollowers.UNFOLLOW")
-                        .putExtra("username", users.get(position).getPk()));
+                unfollow(users.get(position).getPk());
                 removeItem(position);
             }
         });
@@ -110,7 +105,8 @@ public class Adapter extends RecyclerView.Adapter<Adapter.UserViewHolder> {
             @Override
             public void onClick(View view) {
                 Context context = holder.layout.getContext();
-                context.startActivity(instProfileIntent(users.get(holder.getAdapterPosition()).getUsername(), context));
+                context.startActivity(openProfile(users.get(holder.getAdapterPosition()).getUsername(),
+                        context));
             }
         });
     }

@@ -16,12 +16,8 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
-import android.view.KeyEvent;
 import android.view.View;
-import android.view.animation.AccelerateInterpolator;
-import android.view.animation.DecelerateInterpolator;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -41,13 +37,13 @@ public class MainActivity extends AppCompatActivity {
     DelayedProgressDialog spinner = new DelayedProgressDialog();
     Toolbar toolbar;
     SearchView searchView;
-    TextView tvUsername;
+    Button tvUsername;
     SwipeRefreshLayout refreshLayout;
     RecyclerView recycler;
+    Adapter adapter;
     Button bUnfollowAll;
 
     Instagram4Android instagram;
-    Adapter adapter = new Adapter();
     Random random = new Random();
 
     SharedPreferences.Editor editor;
@@ -83,34 +79,41 @@ public class MainActivity extends AppCompatActivity {
             public void onRefresh() {
                 if (isUnfollowingActive)
                     undollowingTask.cancel(false);
+                searchView.setQuery("", false);
+                searchView.setIconified(true);
                 loadData();
             }
         });
 
         toolbar = findViewById(R.id.toolbar);
 
+        adapter = new Adapter() {
+            @SuppressLint("StaticFieldLeak")
+            @Override
+            public void unfollow(final long pk) {
+                new AsyncTask<Void, Void, Void>() {
+                    @Override
+                    protected Void doInBackground(Void... voids) {
+                        try {
+                            instagram.sendRequest(new InstagramUnfollowRequest(pk));
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        return null;
+                    }
+                }.execute();
+            }
+        };
+
         recycler = findViewById(R.id.recycler);
         recycler.setHasFixedSize(true);
         recycler.setItemViewCacheSize(30);
         recycler.setDrawingCacheEnabled(true);
         recycler.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
-        LinearLayoutManager llm = new LinearLayoutManager(this);
-        recycler.setLayoutManager(llm);
+        recycler.setLayoutManager(new LinearLayoutManager(this));
         recycler.setAdapter(adapter);
-        recycler.addOnScrollListener(new OnScrollListener(llm) {
-            @Override
-            public void onLoadMore() {
-                final int count = adapter.loadMore();
-                recycler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        adapter.notifyItemRangeInserted(adapter.getItemCount() - count, adapter.getItemCount());
-                    }
-                });
-            }
-        });
 
-        tvUsername = findViewById(R.id.tvUsername);
+        tvUsername = findViewById(R.id.bUsername);
         bUnfollowAll = findViewById(R.id.bUnfollowAll);
 
         searchView = findViewById(R.id.searchView);
@@ -136,10 +139,10 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public boolean onQueryTextChange(String newText) {
-//                if (newText.length() > 2)
-//                    adapter.search(newText);
-//                else
-//                    adapter.showAll();
+                if (isUnfollowingActive)
+                    undollowingTask.cancel(false);
+
+                    adapter.filter(newText);
                 return false;
             }
         });
@@ -234,7 +237,7 @@ public class MainActivity extends AppCompatActivity {
                             undollowingTask.cancel(false);
                         startLoginActivity();
                         tvUsername.setText("");
-                        adapter.setUsers(new ArrayList<InstagramUserSummary>());
+                        adapter.setUsers(new ArrayList<InstagramUserSummary>(), true);
                         bUnfollowAll.setText(R.string.bUnfollowAll);
                         editor.clear();
                         editor.commit();
@@ -271,7 +274,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            protected void onProgressUpdate(Void... values) {
+            protected void onProgressUpdate(Void... voids) {
                 adapter.removeItem(0);
             }
 
@@ -289,7 +292,7 @@ public class MainActivity extends AppCompatActivity {
                 bUnfollowAll.setText(getString(R.string.bUnfollowAll));
                 isUnfollowingActive = false;
             }
-        }.execute(adapter.getUnfollowAllList());
+        }.execute(adapter.getUnfollowList());
     }
 
     @SuppressLint("StaticFieldLeak")
@@ -333,41 +336,11 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                 }
-                adapter.setUsers(unfollowers);
+                adapter.setUsers(unfollowers, true);
                 spinner.cancel();
                 refreshLayout.setRefreshing(false);
             }
         }.execute();
-    }
-
-    BroadcastReceiver unfollowReceiver = new BroadcastReceiver() {
-        @SuppressLint("StaticFieldLeak")
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            new AsyncTask<Long, Integer, Void>() {
-                @Override
-                protected Void doInBackground(Long... longs) {
-                    try {
-                        instagram.sendRequest(new InstagramUnfollowRequest(longs[0]));
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    return null;
-                }
-            }.execute(intent.getLongExtra("username", 0));
-        }
-    };
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        registerReceiver(unfollowReceiver, new IntentFilter("com.artto.instagramunfollowers.UNFOLLOW"));
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        unregisterReceiver(unfollowReceiver);
     }
 
     @Override
