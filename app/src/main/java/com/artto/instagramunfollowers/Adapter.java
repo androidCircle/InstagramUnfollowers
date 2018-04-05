@@ -29,8 +29,10 @@ public abstract class Adapter extends RecyclerView.Adapter<Adapter.UserViewHolde
         users = list;
         notifyDataSetChanged();
 
-        if (firstLoad)
+        if (firstLoad) {
+            fullList.clear();
             fullList.addAll(users);
+        }
     }
 
     long[] getUnfollowList() {
