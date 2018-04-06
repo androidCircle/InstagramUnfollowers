@@ -5,7 +5,7 @@
     <string name="bLogin">Sign in</string>
     <string name="Unfollow">Unfollow</string>
     <string name="loginError">Authorization error</string>
-    <string name="bUnfollowAll">Unfollow first 50</string>
+    <string name="bUnfollowAll">Unfollow first 10</string>
     <string name="dialogUnfollowAll">Unfollow first 10?</string>
     <string name="dialogLogOut">Do you want to sign out?</string>
     <string name="stop">Stop</string>
