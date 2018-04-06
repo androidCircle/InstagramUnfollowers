@@ -36,7 +36,7 @@ public abstract class Adapter extends RecyclerView.Adapter<Adapter.UserViewHolde
     }
 
     long[] getUnfollowList() {
-        int count = getItemCount() >= 50 ? 50 : getItemCount();
+        int count = getItemCount() >= 10 ? 10 : getItemCount();
         if (count == 0)
             return new long[] {0};
 
