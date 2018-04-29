@@ -13,4 +13,5 @@
     <string name="no">Ні</string>
     <string name="attention">Увага!</string>
     <string name="logoDescription">logo</string>
+    <string name="backPressed">"Натисніть НАЗАД ще раз щоб вийти"</string>
 </resources>

@@ -13,4 +13,5 @@
     <string name="no">No</string>
     <string name="attention">Warning!</string>
     <string name="logoDescription">logo</string>
+    <string name="backPressed">"Click BACK again to exit"</string>
 </resources>
