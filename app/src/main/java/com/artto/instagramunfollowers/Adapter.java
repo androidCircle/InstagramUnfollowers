@@ -47,10 +47,6 @@ public abstract class Adapter extends RecyclerView.Adapter<Adapter.UserViewHolde
     }
 
     void removeItem(final int position) {
-        users.remove(position);
-        notifyItemRemoved(position);
-        notifyItemRangeChanged(position, users.size(), null);
-
         int fullListPosition = -1;
         for (int i = 0; i < fullList.size(); i++)
             if (fullList.get(i).getPk() == users.get(position).getPk()) {
@@ -59,6 +55,10 @@ public abstract class Adapter extends RecyclerView.Adapter<Adapter.UserViewHolde
             }
         if (fullListPosition != -1)
             fullList.remove(fullListPosition);
+
+        users.remove(position);
+        notifyItemRemoved(position);
+        notifyItemRangeChanged(position, users.size(), null);
     }
 
     void filter (final String s) {
