@@ -30,5 +30,5 @@ dependencies {
     implementation 'com.github.charlieAndroidDev:Instagram4Android:0.2.3'
 
     //Image loading lib
-    compile 'com.github.bumptech.glide:glide:4.6.1'
+    implementation 'com.github.bumptech.glide:glide:4.6.1'
 }
