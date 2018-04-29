@@ -25,6 +25,11 @@ public abstract class Adapter extends RecyclerView.Adapter<Adapter.UserViewHolde
     private ArrayList<InstagramUserSummary> fullList = new ArrayList<>();
     private ArrayList<InstagramUserSummary> users = new ArrayList<>();
 
+    private boolean isBlocked = false;
+    public void setBlocked(boolean blocked) {
+        isBlocked = blocked;
+    }
+
     void setUsers(ArrayList<InstagramUserSummary> list, boolean firstLoad) {
         users = list;
         notifyDataSetChanged();
@@ -97,6 +102,9 @@ public abstract class Adapter extends RecyclerView.Adapter<Adapter.UserViewHolde
         holder.button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if (isBlocked)
+                    return;
+
                 final int position = holder.getAdapterPosition();
                 unfollow(users.get(position).getPk());
                 removeItem(position);

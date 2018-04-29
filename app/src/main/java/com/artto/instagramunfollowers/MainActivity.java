@@ -47,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
     SharedPreferences.Editor editor;
     SharedPreferences settings;
 
-    AsyncTask undollowingTask;
+    AsyncTask unfollowingTask;
     boolean isUnfollowingActive = false;
 
     @Override
@@ -77,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onRefresh() {
                 if (isUnfollowingActive)
-                    undollowingTask.cancel(false);
+                    unfollowingTask.cancel(false);
                 searchView.setQuery("", false);
                 searchView.setIconified(true);
                 loadData();
@@ -139,7 +139,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onQueryTextChange(String newText) {
                 if (isUnfollowingActive)
-                    undollowingTask.cancel(false);
+                    unfollowingTask.cancel(false);
 
                     adapter.filter(newText);
                 return false;
@@ -202,7 +202,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void onClickUnfollow(View view) {
         if (isUnfollowingActive)
-            undollowingTask.cancel(false);
+            unfollowingTask.cancel(false);
         else {
             AlertDialog.Builder adb = new AlertDialog.Builder(this)
                     .setTitle(R.string.attention)
@@ -233,7 +233,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int i) {
                         if (isUnfollowingActive)
-                            undollowingTask.cancel(false);
+                            unfollowingTask.cancel(false);
                         startLoginActivity();
                         tvUsername.setText("");
                         adapter.setUsers(new ArrayList<InstagramUserSummary>(), true);
@@ -253,7 +253,7 @@ public class MainActivity extends AppCompatActivity {
 
     @SuppressLint("StaticFieldLeak")
     void unfollowAll() {
-        undollowingTask = new AsyncTask<long[], Void, Void>() {
+        unfollowingTask = new AsyncTask<long[], Void, Void>() {
             @Override
             protected Void doInBackground(long[]... longs) {
                 for (long user : longs[0]) {
@@ -278,6 +278,11 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
+            protected void onPreExecute() {
+                adapter.setBlocked(true);
+            }
+
+            @Override
             protected void onPostExecute(Void aVoid) {
                 onStop();
             }
@@ -290,6 +295,7 @@ public class MainActivity extends AppCompatActivity {
             void onStop() {
                 bUnfollowAll.setText(getString(R.string.bUnfollowAll));
                 isUnfollowingActive = false;
+                adapter.setBlocked(false);
             }
         }.execute(adapter.getUnfollowList());
     }
